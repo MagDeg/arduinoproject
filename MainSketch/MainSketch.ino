@@ -1,20 +1,19 @@
 #include <SPI.h>  // Not actualy used but needed to compile
 
-//uncluding needed subfiles
+//including needed subclasses
 #include "steering.h"
 #include "driving.h"
 #include "distance.h"
 #include "MessageHandler.h"
 
 MessageHandler messageHandler;
-HardwareSerial& serialCom = Serial3;
+HardwareSerial& serialCom = Serial3; //defining variable for serial port 3 (faster changes while debugging)
 
 int speedVal = 200;  //this will be the speed variable, which can be controled by remote device TEMPORARY
 
-int temp = 0;
-
-int joyVert;
-int joyHorz;
+//values of joystick
+int joyVert = 0;
+int joyHorz = 0;
 
 //defining of different subclasses
 Steering steering;
@@ -27,9 +26,9 @@ void setup() {
   driving.init();
   distance.init(50, 51);
 
+  //initializing serial ports for data transfer and debug output
   Serial.begin(115200);
   serialCom.begin(9600);
-  Serial2.begin(9600);
 }
 
 void loop() {
@@ -37,53 +36,35 @@ void loop() {
   if (messageHandler.isMessageAvailable()) {
   
     
-    Serial.print("Message available");
+    Serial.print("Message available"); //debug output
 
     char id;
     const char* data = messageHandler.getMessage(&id);
     Serial.println(id);
     // handle message
-    switch (id) {
+    switch (id) { //if message id is equal to one of the following values do...
       case '1': {
-          Serial.println(data);
-          //messageHandler.sendMessage(Serial3, id, data);
+          Serial.println(data); //debug output
           sscanf(data, "%d;%d;%d", &joyHorz, &joyVert, &speedVal);
-          Serial.println(joyHorz);
           //driving process of car; with current position of joystick and speed of engines
-          //serialCom.end();
-          distance.stopIf(5);
-          driving.handleDriving(joyVert, speedVal / 4, distance);
-          if (steering.isCalibrated() == true) {
+          distance.stopIf(7); //stops engines if distance tracer gets data lower than 7
+          driving.handleDriving(joyVert, 200, distance); //drives with speed of 200 if joystick is moved in right direction
+          if (steering.isCalibrated() == true) {    //steering only possible if steering was calibrated before
             steering.handleSteering(joyHorz);
           }
-          //serialCom.begin(9600);
-       
           break;
         }
-      case '2':
-        {
-          //serialCom.end();
+      case '2': {
           Serial.println("Calibration Starting");
           steering.startCalibration();  //starting calibration
-          messageHandler.sendMessage(Serial2 , 'a', " ");
-          //messageHandler.sendMessage(Serial2 , 'a', " ");    
-          //serialCom.begin(9600); 
+          messageHandler.sendMessage(serialCom , 'a', " "); //sending backsignal to controldevice
           break;
         }
-      case '4':
-        {
-          //serialCom.end();
-          tone(24, 200, 1000);
-          //serialCom.begin(9600);
-          break;
-        }
-      case '9':
-        {
-          Serial.println("\n");
-          Serial.println(data);
+      case '4': {
+          tone(24, 200, 1000); //plays the horn
           break;
         }
     }
-    //Serial.println("Horz: " + String(joyHorz) + " Vert: " + String(joyVert) + " Speed: " + String(speedVal/4) + " Cal: " + String(0) + " Horn: " + String(0));
+    
   }
 }

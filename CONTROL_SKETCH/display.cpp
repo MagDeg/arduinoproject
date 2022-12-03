@@ -37,14 +37,14 @@ void Display::progressIndicator() {
 
   for (int i = 0; i < 100; i++) {
     setCursor(0, 0);
-    LiquidCrystal_I2C::print("Progress: " + String(i) + "%");
+    LiquidCrystal_I2C::print("Fortschritt: " + String(i) + "%");
 
     setCursor(2, 1);
     LiquidCrystal_I2C::print("[");
     setCursor(13, 1);
     LiquidCrystal_I2C::print("]");
 
-    delay(250);
+    delay(25);
 
     if (((i % 10) == 0) && (i != 0)) {
       setCursor(progressPos, 1);
@@ -56,7 +56,7 @@ void Display::progressIndicator() {
   }
   clear();
   setCursor(0, 0);
-  LiquidCrystal_I2C::print("Done!");
+  LiquidCrystal_I2C::print("Abgeschlossen!");
   delay(1000);
   clear();
 }
